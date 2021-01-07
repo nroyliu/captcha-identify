@@ -1,4 +1,4 @@
-### Captcha Identifier
+### Captcha Identify
 
 ![Training model](./images/GIF%202021-01-07%2015-29-29.gif)
 
