@@ -11,7 +11,7 @@
    Images are downloaded need params `image_url`, `save_url`.
 - `train()`
 
-   Training model displays the image and then requires you to press the corresponding key need params `image_url` image_download function should be run before this method.
+   Training model displays the image and then requires you to press the corresponding key `esc` exit need params `image_url` image_download function should be run before this method.
 - `draw_roi()`
 
    Draw the content body and show for you.
