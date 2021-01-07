@@ -11,28 +11,31 @@ import cv2
 import pytesseract
 from urllib.request import urlretrieve
 
-def captcha(image_url):
+
+def train(image_url):
     # 读取图片
     img = cv2.imread(image_url)
     # 图片灰度
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # 图片二值化
-    ret, img_inv = cv2.threshold(img_gray,127,255,cv2.THRESH_BINARY_INV)
+    ret, img_inv = cv2.threshold(img_gray, 127, 255, cv2.THRESH_BINARY_INV)
     # 提取内容轮廓
     contours, hierarchy = cv2.findContours(img_inv, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # 遍历内容轮廓
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
-        # cv2.selectROI(windowName="roi", img=img, showCrosshair=True, fromCenter=False)
         img_roi = img_inv[y - 1:y + h + 1, x - 1:x + w + 1]
-
-        img_std = cv2.resize(img_roi,(11, 15))
-        cv2.imshow('image', img_std)
+        img_pvw = cv2.resize(img_roi, (110, 150))
+        cv2.imshow('image', img_pvw)
         key = cv2.waitKey(0)
+        if key == 27:
+            break
+        img_std = cv2.resize(img_roi, (11, 15))
         char = chr(key)
         timestamp = int(time.time() * 1e6);
         print(timestamp)
         cv2.imwrite('./number/{}_{}.jpg'.format(timestamp + y, char), img_std)
+
 
 def draw_roi(image_url):
     # 读取图片
@@ -46,17 +49,12 @@ def draw_roi(image_url):
     # 遍历内容轮廓
     for contour in reversed(contours):
         x, y, w, h = cv2.boundingRect(contour)
-        # cv2.selectROI(windowName="roi", img=img, showCrosshair=True, fromCenter=False)
-        # cv2.imshow('image', img_std)
         cv2.rectangle(img_inv, (x - 2, y - 2), (x + w + 2, y + h + 2), (255, 77, 77), 1)
-        cv2.imshow('image_roi',img_inv)
-    # cv2.imwrite('./image_gray.jpg', img_inv)
-    # text = pytesseract.image_to_string(img_gray, lang="eng")
-    # print(text)
-    # img = Image.open('./image_gray.jpg')
-    # img.show()
+        cv2.imshow('image_roi', img_inv)
+        cv2.waitKey(0)
 
-def train():
+
+def identify(image_url):
     files = os.listdir('number')
     samples = np.empty((0, 165))
     labels = []
@@ -64,7 +62,7 @@ def train():
         filepath = os.path.join('number', filename)
         labels.append(filename.split(".")[0].split('_')[-1])
         im = cv2.imread(filepath, cv2.IMREAD_GRAYSCALE)
-        sample = im.reshape((1,165)).astype(np.float32)
+        sample = im.reshape((1, 165)).astype(np.float32)
         samples = np.append(samples, sample, 0)
     unique_labels = list(set(labels))
     unique_ids = list(range(len(unique_labels)))
@@ -77,7 +75,7 @@ def train():
     model = cv2.ml.KNearest_create()
     model.train(samples, cv2.ml.ROW_SAMPLE, label_ids)
 
-    img = cv2.imread('./image.jpg')
+    img = cv2.imread(image_url)
     # 图片灰度
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # 图片二值化
@@ -96,19 +94,15 @@ def train():
         label = id_label_map[label_id]
         code += label
     print(code)
-    cv2.imshow('code', img)
-    cv2.waitKey(0)
 
-def urllib_download(image_url):
-    # 下载图片
-    urlretrieve(image_url, './image.jpg')
 
-# Press the green button in the gutter to run the script.
+def image_download(image_url, save_url):
+    urlretrieve(image_url, save_url)
+
+
 if __name__ == '__main__':
-    # while(1):
-    urllib_download('http://cdsjwytx.139erp.com/image.jsp?t=0.28822175107232817')
-    #     captcha('./image.jpg')
+    # image_download('', './image.jpg')
+    # train('./image.jpg');
+    identify('./image.jpg')
     # draw_roi('./image.jpg')
-    train();
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
